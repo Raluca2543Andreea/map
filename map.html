@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Politic.AI - Animated Neon Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .capital-label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #00f0ff;
+      text-shadow: 0 0 5px #00f0ff;
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 20px 20px rgba(0, 255, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 255, 0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const map = L.map('map').setView([45.5, 25], 6);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CartoDB',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  function addCapital(lat, lng, name) {
+    const marker = L.circleMarker([lat, lng], {
+      radius: 8,
+      color: '#00f0ff',
+      fillColor: '#00f0ff',
+      fillOpacity: 0.9,
+      weight: 2
+    }).addTo(map);
+
+    marker.bindPopup(`<div class="capital-label">${name}</div>`);
+  }
+
+  const capitals = [
+    [44.4268, 26.1025, 'Bucharest'],
+    [44.7866, 20.4489, 'Belgrade'],
+    [50.4501, 30.5234, 'Kyiv'],
+    [47.0105, 28.8638, 'Chișinău'],
+    [47.4979, 19.0402, 'Budapest'],
+    [42.6977, 23.3219, 'Sofia']
+  ];
+
+  capitals.forEach(([lat, lng, name]) => addCapital(lat, lng, name));
+
+  const countries = ['ROU', 'SRB', 'UKR', 'MDA', 'HUN', 'BGR'];
+
+  const colorMap = {
+    ROU: '#ff3cac',
+    SRB: '#ff9100',
+    UKR: '#00f0ff',
+    MDA: '#faff00',
+    HUN: '#ff00ff',
+    BGR: '#00ffaa'
+  };
+
+  fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        filter: feature => countries.includes(feature.id),
+        style: feature => ({
+          color: colorMap[feature.id] || '#fff',
+          weight: 8,
+          opacity: 0.8,
+          dashArray: '5, 10',
+          fillOpacity: 0.2
+        }),
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function () {
+            alert(`Intelligence report for ${feature.properties.name}:\n\nNo current alerts. Situation stable.`);
+          });
+        }
+      }).addTo(map);
+    });
+</script>
+</body>
+</html>
